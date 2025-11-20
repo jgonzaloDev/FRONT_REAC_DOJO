@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example App (remote)</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Deployment / health banner: visible even if the app JS fails to mount -->
+    <div id="deploy-status" style="position:fixed;right:12px;bottom:12px;background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:9999;box-shadow:0 6px 18px rgba(0,0,0,0.2)">Web Accesible 🔒 — Dale nomás Gonzalin</div>
+    <script>
+      // allow the React app to update this node when it mounts
+      window.__EXAMPLE_APP_DEPLOY_STATUS = function (txt) {
+        try {
+          var el = document.getElementById('deploy-status')
+          if (el) el.textContent = txt
+        } catch (e) {
+          // noop
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+.ds-modal__dialog { overflow: visible !important; }
+/* Ensure the combobox dropdown appears above modal's content and overlay */
+.ds-combobox__list { z-index: 1100 !important; position: absolute !important; }
+/* Allow the combobox control container to overflow so the dropdown isn't clipped */
+.ds-combobox__control { overflow: visible !important; }
