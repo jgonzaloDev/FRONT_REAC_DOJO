@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Header, FilterCard, Table, TextInput, Combobox, Modal, Button, Card } from 'storybook-dojo-react'
 import { context as otelContext, trace as otelTrace, propagation as otelPropagation } from '@opentelemetry/api'
-import { tracer as otelTracer } from '../otel/initOtel'
+import { trace as otelTracer } from '../otel/initOtel'
 import clientImg from '../images/client.png'
 
 export default function Orders() {
