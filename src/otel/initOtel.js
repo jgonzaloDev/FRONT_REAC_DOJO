@@ -1,14 +1,13 @@
-try {
-  const { WebTracerProvider } = require('@opentelemetry/sdk-trace-web')
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web'
 
+let trace = null
+
+try {
   const provider = new WebTracerProvider()
   provider.register()
-
-  module.exports = {
-    tracer: provider.getTracer('example-app-tracer')
-  }
+  trace = provider.getTracer('example-app-tracer')
 } catch (e) {
-  module.exports = {
-    tracer: null
-  }
+  trace = null
 }
+
+export { trace }
