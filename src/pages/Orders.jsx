@@ -214,7 +214,7 @@ export default function Orders() {
 
   useEffect(() => {
     let mounted = true
-  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'http://localhost:8080/'
+  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://webapp-backend-dojo-2026.azurewebsites.net/'
   ;(async () => {
     try {
       const url = `${apiUrl}customer/all`
@@ -289,7 +289,7 @@ export default function Orders() {
   useEffect(() => {
     let mounted = true
     setLoading(true)
-  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'http://localhost:8081/'
+  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://webapp-backend-dojo-2026.azurewebsites.net/'
   ;(async () => {
     try {
       const url = `${orderUrl}order/all`
