@@ -217,7 +217,7 @@ export default function Orders() {
   const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://webapp-backend-dojo-2026.azurewebsites.net/'
   ;(async () => {
     try {
-      const url = `${apiUrl}customer/all`
+      const url = `${apiUrl}customer`
       let span
       if (otelTracer && typeof otelTracer.startSpan === 'function') {
         span = otelTracer.startSpan('fetch.customers')
@@ -292,7 +292,7 @@ export default function Orders() {
   const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://webapp-backend-dojo-2026.azurewebsites.net/'
   ;(async () => {
     try {
-      const url = `${orderUrl}order/all`
+      const url = `${orderUrl}order`
       let span
       if (otelTracer && typeof otelTracer.startSpan === 'function') {
         span = otelTracer.startSpan('fetch.orders')
