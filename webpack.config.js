@@ -53,8 +53,8 @@ module.exports = {
       // (alternative: align all apps/host to use the same shared config with eager:false and ensure host provides react)
       shared: {
         // Let the container provide React. Do not mark eager here to avoid duplicate React loads.
-        react: { singleton: true, eager: false, requiredVersion: false },
-        'react-dom': { singleton: true, eager: false, requiredVersion: false }
+        react: { singleton: true, eager: true, requiredVersion: false },
+        'react-dom': { singleton: true, eager: true, requiredVersion: false }
       },
     }),
     (() => {
