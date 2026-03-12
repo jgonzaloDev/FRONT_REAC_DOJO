@@ -212,7 +212,7 @@ export default function Orders() {
 
   useEffect(() => {
     let mounted = true
-  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'http://localhost:8080/'
+  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/'
   ;(async () => {
     try {
       const url = `${apiUrl}customer/all`
