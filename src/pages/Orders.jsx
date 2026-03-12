@@ -108,6 +108,8 @@ export default function Orders() {
   const [modalStatus, setModalStatus] = useState('')
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [detailOrder, setDetailOrder] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState(null)
 
   const openNewModal = () => {
     setModalCustomer('')
@@ -121,9 +123,85 @@ export default function Orders() {
     setIsModalOpen(false)
   }
 
-  const openDetail = (order) => {
-    setDetailOrder(order)
+  const openDetail = async (order) => {
+    // Require backend data — no local fallback
+    setDetailOrder(null)
+    setDetailError(null)
+    setDetailLoading(true)
     setDetailModalOpen(true)
+
+    try {
+      const cust = getCustomer(order.customerId)
+      if (!cust) {
+        setDetailOrder(null)
+        setDetailError('No se encontró información del cliente para construir la consulta')
+        setDetailLoading(false)
+        return
+      }
+
+      const firstName = (cust.name || '').trim().split(/\s+/)[0] || ''
+      const firstLast = (cust.lastName || '').trim().split(/\s+/)[0] || ''
+      let username = `${firstName}.${firstLast}`.toLowerCase()
+      username = username.replace(/[^a-z0-9._-]/g, '')
+
+      const base = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/api/'
+      const baseNoSlash = base.replace(/\/$/, '')
+      const url = `${baseNoSlash}/order/username/${username}`
+
+      const res = await fetch(url)
+      if (!res.ok) {
+        setDetailOrder(null)
+        setDetailError(`Respuesta del backend: HTTP ${res.status}`)
+        setDetailLoading(false)
+        return
+      }
+
+      let data = null
+      // prefer JSON, but accept XML responses and parse them
+      const ct = res.headers.get('content-type') || ''
+      if (ct.includes('application/json')) {
+        data = await res.json()
+      } else {
+        const text = await res.text()
+        try {
+          const parser = new DOMParser()
+          const xml = parser.parseFromString(text, 'application/xml')
+          const item = xml.querySelector('item') || xml.querySelector('ArrayList > item')
+          if (item) {
+            const id = item.querySelector('id')?.textContent
+            const customerId = item.querySelector('customerId')?.textContent
+            const createAt = item.querySelector('createAt')?.textContent
+            const statusOrder = item.querySelector('statusOrder')?.textContent
+            const detailsNodes = item.querySelectorAll('details > details')
+            const details = Array.from(detailsNodes).map(dn => ({
+              id: dn.querySelector('id')?.textContent ? Number(dn.querySelector('id')?.textContent) : undefined,
+              productName: dn.querySelector('productName')?.textContent || '',
+              quantity: dn.querySelector('quantity')?.textContent ? Number(dn.querySelector('quantity')?.textContent) : 0,
+              priceUnit: dn.querySelector('priceUnit')?.textContent ? Number(dn.querySelector('priceUnit')?.textContent) : 0
+            }))
+            data = { id: id ? Number(id) : undefined, customerId: customerId ? Number(customerId) : undefined, createAt, statusOrder, details }
+          }
+        } catch (ex) {
+          // leave data null
+        }
+      }
+
+      if (!data) {
+        setDetailOrder(null)
+        setDetailError('El backend no devolvió información del pedido')
+        setDetailLoading(false)
+        return
+      }
+
+      const orderData = Array.isArray(data) && data.length > 0 ? data[0] : data
+      setDetailOrder(orderData)
+    } catch (err) {
+      console.error('[Orders] openDetail fetch error', err)
+      setDetailOrder(null)
+      setDetailError('Error consultando el backend')
+    } finally {
+      setDetailLoading(false)
+    }
   }
 
   const mapOrdersToRows = (orders, customersList, onOpenDetail) => {
@@ -212,7 +290,7 @@ export default function Orders() {
 
   useEffect(() => {
     let mounted = true
-  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/'
+  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL :'https://app-dojo.com/api/'
   ;(async () => {
     try {
       const url = `${apiUrl}customer/all`
@@ -256,8 +334,8 @@ export default function Orders() {
 
   useEffect(() => {
     try {
-      const envApiUrl = (import.meta && import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/'
-      const envOrderUrl = (import.meta && import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/'
+      const envApiUrl = (import.meta && import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/api/'
+      const envOrderUrl = (import.meta && import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/api/'
       console.log('[example-app][Orders] status', {
         customersFromEndpoint,
         ordersFromEndpoint,
@@ -272,7 +350,7 @@ export default function Orders() {
   useEffect(() => {
     let mounted = true
     setLoading(true)
-  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/'
+  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/api/'
   ;(async () => {
     try {
       const url = `${orderUrl}order/all`
@@ -356,8 +434,8 @@ export default function Orders() {
             <div style={{ height: 1, background: '#f1f1f1', margin: '10px 0' }} />
             <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Variables de Entorno</div>
             {(() => {
-              const envApiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/'
-              const envOrderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/'
+              const envApiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/api/'
+              const envOrderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/api/'
               const envApi = Boolean(envApiUrl)
               const envOrder = Boolean(envOrderUrl)
               const localUsed = !customersFromEndpoint || !ordersFromEndpoint
@@ -390,34 +468,44 @@ export default function Orders() {
       {/* Detail modal */}
       <Modal isOpen={detailModalOpen} headerStart="#0b5cff" headerEnd="#0044cc" headerText="#e8f7ff" onClose={() => setDetailModalOpen(false)} title={`Detalle orden #${detailOrder?.id || ''}`} secondaryAction={{ label: 'Cerrar', onClick: () => setDetailModalOpen(false) }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Card style={{ padding: 14, minHeight: 100 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                <img src={clientImg} alt="cliente" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', boxShadow: '0 6px 18px rgba(11,92,255,0.12)' }} />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#0b2a66' }}>{getCustomerName(detailOrder?.customerId)}</div>
-                  <div style={{ color: '#666', marginTop: 6 }}>{getCustomer(detailOrder?.customerId)?.cellPhone || ''}</div>
-                  <div style={{ marginTop: 8, color: '#444' }}><strong>Fecha:</strong> <span style={{ marginLeft: 8, fontWeight: 600 }}>{formatDate(detailOrder?.createAt)}</span></div>
-                </div>
-              </div>
+          {detailLoading ? (
+            <div>Cargando detalles...</div>
+          ) : detailError ? (
+            <div style={{ color: '#dc3545' }}>{detailError}</div>
+          ) : detailOrder ? (
+            <>
+              <Card style={{ padding: 14, minHeight: 100 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+                  <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                    <img src={clientImg} alt="cliente" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', boxShadow: '0 6px 18px rgba(11,92,255,0.12)' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: '#0b2a66' }}>{getCustomerName(detailOrder?.customerId)}</div>
+                      <div style={{ color: '#666', marginTop: 6 }}>{getCustomer(detailOrder?.customerId)?.cellPhone || ''}</div>
+                      <div style={{ marginTop: 8, color: '#444' }}><strong>Fecha:</strong> <span style={{ marginLeft: 8, fontWeight: 600 }}>{formatDate(detailOrder?.createAt)}</span></div>
+                    </div>
+                  </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, minWidth: 160 }}>
-                <div style={statusBadge(detailOrder?.statusOrder || detailOrder?.status)}>{detailOrder?.statusOrder || detailOrder?.status || ''}</div>
-                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                  <div style={{ background: 'linear-gradient(90deg,#0b5cff,#0044cc)', color: 'white', padding: '10px 18px', borderRadius: 12, textAlign: 'center', boxShadow: '0 8px 20px rgba(11,92,255,0.12)' }}>
-                    <div style={{ fontSize: 12, opacity: 0.95 }}>Total</div>
-                    <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>{formatCurrency(detailTotal)}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, minWidth: 160 }}>
+                    <div style={statusBadge(detailOrder?.statusOrder || detailOrder?.status)}>{detailOrder?.statusOrder || detailOrder?.status || ''}</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                      <div style={{ background: 'linear-gradient(90deg,#0b5cff,#0044cc)', color: 'white', padding: '10px 18px', borderRadius: 12, textAlign: 'center', boxShadow: '0 8px 20px rgba(11,92,255,0.12)' }}>
+                        <div style={{ fontSize: 12, opacity: 0.95 }}>Total</div>
+                        <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>{formatCurrency(detailTotal)}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </Card>
-          {detailData && detailData.length > 0 ? (
-            <div>
-              <Table columns={detailColumns} data={detailData} headerStart="#0b5cff" headerEnd="#0044cc" headerText="#e8f7ff" />
-            </div>
+              </Card>
+              {detailData && detailData.length > 0 ? (
+                <div>
+                  <Table columns={detailColumns} data={detailData} headerStart="#0b5cff" headerEnd="#0044cc" headerText="#e8f7ff" />
+                </div>
+              ) : (
+                <div>No hay detalles para esta orden.</div>
+              )}
+            </>
           ) : (
-            <div>No hay detalles para esta orden.</div>
+            <div>El backend no proporcionó datos para este pedido.</div>
           )}
         </div>
       </Modal>
