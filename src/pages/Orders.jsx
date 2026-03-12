@@ -256,8 +256,8 @@ export default function Orders() {
 
   useEffect(() => {
     try {
-      const envApiUrl = (import.meta && import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : null
-      const envOrderUrl = (import.meta && import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : null
+      const envApiUrl = (import.meta && import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/'
+      const envOrderUrl = (import.meta && import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/'
       console.log('[example-app][Orders] status', {
         customersFromEndpoint,
         ordersFromEndpoint,
@@ -272,7 +272,7 @@ export default function Orders() {
   useEffect(() => {
     let mounted = true
     setLoading(true)
-  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'http://localhost:8081/'
+  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/'
   ;(async () => {
     try {
       const url = `${orderUrl}order/all`
@@ -356,8 +356,8 @@ export default function Orders() {
             <div style={{ height: 1, background: '#f1f1f1', margin: '10px 0' }} />
             <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Variables de Entorno</div>
             {(() => {
-              const envApiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : null
-              const envOrderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : null
+              const envApiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://app-dojo.com/'
+              const envOrderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://app-dojo.com/'
               const envApi = Boolean(envApiUrl)
               const envOrder = Boolean(envOrderUrl)
               const localUsed = !customersFromEndpoint || !ordersFromEndpoint
