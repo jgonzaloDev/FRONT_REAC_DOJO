@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Header, FilterCard, Table, TextInput, Combobox, Modal, Button, Card } from 'storybook-dojo-react'
-import { context as otelContext, trace as otelTrace, propagation as otelPropagation } from '@opentelemetry/api'
-import { trace as otelTracer } from '../otel/initOtel'
 import clientImg from '../images/client.png'
 
 export default function Orders() {
@@ -214,27 +212,13 @@ export default function Orders() {
 
   useEffect(() => {
     let mounted = true
-  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'https://webapp-backend-dojo-2026.azurewebsites.net/'
+  const apiUrl = (import.meta.env && import.meta.env.VITE_APIURL) ? import.meta.env.VITE_APIURL : 'http://localhost:8080/'
   ;(async () => {
     try {
-      const url = `${apiUrl}customer`
-      let span
-      if (otelTracer && typeof otelTracer.startSpan === 'function') {
-        span = otelTracer.startSpan('fetch.customers')
-      }
-      const headers = new Headers()
-      if (span) {
-        const ctx = otelTrace.setSpan(otelContext.active(), span)
-        try {
-          otelPropagation.inject(ctx, headers, {
-            set: (carrier, key, value) => carrier.set(key, value)
-          })
-        } catch (e) {
-          // ignore propagation errors
-        }
-      }
-
-      const res = await fetch(url, { headers })
+      const url = `${apiUrl}customer/all`
+      
+      // Con la instrumentación automática, fetch inyecta los headers automáticamente
+      const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       const ok = (Array.isArray(data) && data.length > 0)
@@ -243,7 +227,6 @@ export default function Orders() {
         setCustomers(toUse)
         setCustomersFromEndpoint(Boolean(ok))
       }
-      if (span) span.end()
     } catch (e) {
       if (mounted) {
         setCustomers(fallbackCustomers)
@@ -289,23 +272,13 @@ export default function Orders() {
   useEffect(() => {
     let mounted = true
     setLoading(true)
-  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'https://webapp-backend-dojo-2026.azurewebsites.net/'
+  const orderUrl = (import.meta.env && import.meta.env.VITE_ORDERURL) ? import.meta.env.VITE_ORDERURL : 'http://localhost:8081/'
   ;(async () => {
     try {
-      const url = `${orderUrl}order`
-      let span
-      if (otelTracer && typeof otelTracer.startSpan === 'function') {
-        span = otelTracer.startSpan('fetch.orders')
-      }
-      const headers = new Headers()
-      if (span) {
-        const ctx = otelTrace.setSpan(otelContext.active(), span)
-        try {
-          otelPropagation.inject(ctx, headers, { set: (carrier, key, value) => carrier.set(key, value) })
-        } catch (e) {}
-      }
-
-      const res = await fetch(url, { headers })
+      const url = `${orderUrl}order/all`
+      
+      // Con la instrumentación automática, fetch inyecta los headers automáticamente
+      const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       const ok = (Array.isArray(data) && data.length > 0)
@@ -314,7 +287,6 @@ export default function Orders() {
         setOrdersRaw(toUse)
         setOrdersFromEndpoint(Boolean(ok))
       }
-      if (span) span.end()
     } catch (err) {
       if (mounted) {
         setOrdersRaw(fallbackOrders)

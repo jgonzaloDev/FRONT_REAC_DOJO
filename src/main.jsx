@@ -1,3 +1,6 @@
+// Inicializar OpenTelemetry PRIMERO, antes que todo
+import './otel/initOtel'
+
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
