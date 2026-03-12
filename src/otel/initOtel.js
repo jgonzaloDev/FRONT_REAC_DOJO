@@ -1,10 +1,11 @@
-try {
-  const { WebTracerProvider } = require('@opentelemetry/sdk-trace-web')
-  const { W3CTraceContextPropagator } = require('@opentelemetry/core')
-  const { registerInstrumentations } = require('@opentelemetry/instrumentation')
-  const { FetchInstrumentation } = require('@opentelemetry/instrumentation-fetch')
-  const { propagation } = require('@opentelemetry/api')
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web'
+import { W3CTraceContextPropagator } from '@opentelemetry/core'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
+import { propagation } from '@opentelemetry/api'
 
+let tracer = null
+try {
   const provider = new WebTracerProvider()
   provider.register()
 
@@ -15,7 +16,7 @@ try {
   registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation({
-        propagateTraceHeaderCorsUrls: /.*/,  // Propagar headers a todas las URLs
+        propagateTraceHeaderCorsUrls: /.*/, // Propagar headers a todas las URLs
         clearTimingResources: true,
         applyCustomAttributesOnSpan: (span) => {
           span.setAttribute('custom.frontend', 'example-app')
@@ -24,12 +25,9 @@ try {
     ]
   })
 
-  module.exports = {
-    tracer: provider.getTracer('example-app-tracer')
-  }
+  tracer = provider.getTracer('example-app-tracer')
 } catch (e) {
   console.error('[OTEL] Error inicializando OpenTelemetry:', e)
-  module.exports = {
-    tracer: null
-  }
 }
+
+export { tracer }
