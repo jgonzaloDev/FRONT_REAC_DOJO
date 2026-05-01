@@ -16,10 +16,6 @@ try {
   // const exporter = new OTLPTraceExporter({
   //   url: "http://localhost:8080/api/otel/v1/traces"
   // })
- resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'react-frontend'
-  })
- 
 
   const exporter = new OTLPTraceExporter({
     url: "https://app-dojo.com/api/otel/v1/traces",
